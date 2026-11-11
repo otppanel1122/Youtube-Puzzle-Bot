@@ -112,7 +112,7 @@ def generate_puzzle():
     }
     
     try:
-        resp = requests.post(url, headers=headers, json=payload, timeout=20)
+        resp = requests.post(url, headers=headers, json=payload, timeout=35)
         if resp.status_code == 200:
             data = resp.json()
             text = data["candidates"][0]["content"]["parts"][0]["text"]
