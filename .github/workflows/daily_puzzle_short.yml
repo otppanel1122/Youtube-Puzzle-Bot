@@ -1,0 +1,64 @@
+name: 24/7 Viral Puzzle & Hidden Object Shorts (6x Daily)
+
+on:
+  schedule:
+    # Runs 6 times a day (every 4 hours): 01:00, 05:00, 09:00, 13:00, 17:00, 21:00 UTC
+    - cron: '0 1,5,9,13,17,21 * * *'
+  workflow_dispatch: # Allows instant manual trigger anytime
+
+permissions:
+  contents: write
+
+jobs:
+  generate-and-publish:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+
+      - name: Install System FFmpeg
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ffmpeg fonts-dejavu fonts-liberation
+
+      - name: Install Python Dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Generate Puzzle Short & Upload
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          YOUTUBE_CLIENT_ID: ${{ secrets.YOUTUBE_CLIENT_ID }}
+          YOUTUBE_CLIENT_SECRET: ${{ secrets.YOUTUBE_CLIENT_SECRET }}
+          YOUTUBE_REFRESH_TOKEN: ${{ secrets.YOUTUBE_REFRESH_TOKEN }}
+          VIDEO_PRIVACY: ${{ secrets.VIDEO_PRIVACY || 'public' }}
+        run: |
+          python run_pipeline.py
+
+      - name: Commit and Push Updated Puzzle History
+        if: always()
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add history.json || true
+          git commit -m "chore: record covered puzzle niche [skip ci]" || true
+          git push || true
+
+      - name: Upload Video Artifact (Backup)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: generated-puzzle-shorts
+          path: output/*.mp4
+          retention-days: 7
