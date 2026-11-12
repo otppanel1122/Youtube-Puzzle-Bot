@@ -9,3 +9,5 @@ __pycache__/
 *.wav
 *.jpg
 *.png
+node_modules/
+package-lock.json

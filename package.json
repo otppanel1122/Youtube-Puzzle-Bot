@@ -1,0 +1,7 @@
+{
+  "name": "youtube-puzzle-bot-image-engine",
+  "version": "1.0.0",
+  "dependencies": {
+    "@heyputer/puter.js": "^1.0.0"
+  }
+}
