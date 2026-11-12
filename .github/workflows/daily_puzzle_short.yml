@@ -2,8 +2,8 @@ name: 24/7 Viral Puzzle & Hidden Object Shorts (6x Daily)
 
 on:
   schedule:
-    # Runs 6 times a day (every 4 hours): 01:00, 05:00, 09:00, 13:00, 17:00, 21:00 UTC
-    - cron: '0 1,5,9,13,17,21 * * *'
+    # Runs 7 times a day: 00:00, 03:00, 07:00, 11:00, 14:00, 17:00, 21:00 UTC
+    - cron: '0 0,3,7,11,14,17,21 * * *'
   workflow_dispatch: # Allows instant manual trigger anytime
 
 permissions:
