@@ -103,27 +103,29 @@ def generate_puzzle():
         save_history(choice["theme"])
         return choice
         
-    url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-3.8-flash:generateContent?key={GEMINI_API_KEY}"
-    headers = {"Content-Type": "application/json"}
-    formatted_prompt = PROMPT.format(history_text=history_text)
-    payload = {
-        "contents": [{"parts": [{"text": formatted_prompt}]}],
-        "generationConfig": {"temperature": 0.85, "response_mime_type": "application/json"}
-    }
-    
-    try:
-        resp = requests.post(url, headers=headers, json=payload, timeout=35)
-        if resp.status_code == 200:
-            data = resp.json()
-            text = data["candidates"][0]["content"]["parts"][0]["text"]
-            puzzle = json.loads(text)
-            print(f"[Puzzle - HARD] Generated: '{puzzle.get('theme')}' -> Target: '{puzzle.get('target_object')}'")
-            save_history(puzzle.get("theme"))
-            return puzzle
-        else:
-            print(f"[Puzzle] Gemini API notice {resp.status_code}: {resp.text[:200]}")
-    except Exception as e:
-        print("[Puzzle] Notice calling Gemini API, using hard curated template:", e)
+    models = ["gemini-3-flash-preview", "gemini-flash-lite-latest"]
+    for model_name in models:
+        url = f"https://generativelanguage.googleapis.com/v1beta/models/{model_name}:generateContent?key={GEMINI_API_KEY}"
+        headers = {"Content-Type": "application/json"}
+        formatted_prompt = PROMPT.format(history_text=history_text)
+        payload = {
+            "contents": [{"parts": [{"text": formatted_prompt}]}],
+            "generationConfig": {"temperature": 0.85, "response_mime_type": "application/json"}
+        }
+        
+        try:
+            resp = requests.post(url, headers=headers, json=payload, timeout=25)
+            if resp.status_code == 200:
+                data = resp.json()
+                text = data["candidates"][0]["content"]["parts"][0]["text"]
+                puzzle = json.loads(text)
+                print(f"[Puzzle - HARD] Generated via {model_name}: '{puzzle.get('theme')}' -> Target: '{puzzle.get('target_object')}'")
+                save_history(puzzle.get("theme"))
+                return puzzle
+            else:
+                print(f"[Puzzle] Model {model_name} notice {resp.status_code}: {resp.text[:100]}")
+        except Exception as e:
+            print(f"[Puzzle] Model {model_name} exception: {e}")
         
     choice = random.choice(HARD_FALLBACK_PUZZLES)
     save_history(choice["theme"])
